@@ -2,12 +2,13 @@ import numpy as np
 from numpy import array
 from enum import Enum
 
-class Biome(Enum):
-    LAC = 0
-    DESERT = 1
-    MARAIS = 2
-    MONTAGNE = 3
-    FORET = 4
+Biome = {
+    0 : "LAC",
+    1 : "DESERT",
+    2 : "MARAIS",
+    3 : "MONTAGNE",
+    4 : "FORET"
+}
 
 BiomeColor = {0 : "blue",
               1 : "yellow",
@@ -35,4 +36,3 @@ BIOME6 = array([[1,1,2,2,2,4],
                 [3,3,2,2,4,4],
                 [3,0,0,0,0,4]])
 
-BiomeColor[DESERT]
