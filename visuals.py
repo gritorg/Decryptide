@@ -2,8 +2,8 @@ import matplotlib.pyplot as plt
 import tkinter as tk
 import numpy as np
 from math import cos, sin, pi
-from utils import BIOMES
-from utils import Biome, BiomeColor
+from utils import BIOMES, Biome, BiomeColor, AnimalsColor
+from game import Board
 
 def place_hexa(cv : tk.Canvas, x0, y0, r, **options):
     "draw a regular hexagone on the canva cv at coordiante x0, y0"
@@ -21,19 +21,18 @@ def place_hexa(cv : tk.Canvas, x0, y0, r, **options):
                       x5, y5,
                       **options)
     
-def  place_hex_net(cv : tk.Canvas, x0, y0, r, grid):
+def place_hex_net(cv : tk.Canvas, x0, y0, r, biome_grid, animal_grid, **options):
     """ne marche que pour des largeur paire"""
-
-    for i in range(len(grid)):
+    assert biome_grid.shape == animal_grid.shape
+    for i in range(len(biome_grid)):
         x = x0
         y = y0 + i*2*r*sin(pi/3)
         yp = y + r*sin(pi/3)
-        for j in range(len(grid[0])//2):
-            place_hexa(cv, x, y, r, fill=BiomeColor[grid[i, 2*j]], activeoutline="black")
+        for j in range(len(biome_grid[0])//2):
+            place_hexa(cv, x, y, r, fill=BiomeColor[biome_grid[i, 2*j]], outline=AnimalsColor[animal_grid[i, 2*j]], width=5, **options)
             xp = x + r*(1+cos(pi/3))
-            place_hexa(cv, xp, yp, r, fill=BiomeColor[grid[i, 2*j+1]], activeoutline="black")
+            place_hexa(cv, xp, yp, r, fill=BiomeColor[biome_grid[i, 2*j+1]], outline=AnimalsColor[animal_grid[i, 2*j+1]], width=5, **options)
             x += 2*r*(1 + cos(pi/3))
-
 
 class SetupInterface(tk.Tk):
 
@@ -49,17 +48,15 @@ class SetupInterface(tk.Tk):
         self.cv.pack()
 
     def validate(self):
-        numbers = self.entree.get()
+        numbers = list(map(int,list(self.entree.get())))
         assert len(numbers) == 6
+        
+        self.board = Board(numbers)
+
         self.cv.delete("all")
+        place_hex_net(self.cv, 100, 100, 40, self.board.biome_grid, self.board.animal_grid)
+    
 
-        biome_list = [[],[],[]]
-        for i in range(3):
-            for j in range(2):
-                biome_list[i].append(BIOMES[int(numbers[2*i+j])-1])
-        biome_grid = np.block(biome_list)
-
-        place_hex_net(self.cv, 100, 100, 20, biome_grid)
-
-
-
+class GameInterface(tk.Tk):
+    def __init__(self):
+        pass
