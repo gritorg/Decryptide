@@ -22,19 +22,7 @@ def place_reg_poly(cv, n, x0, y0, r, **options):
 def place_hexa(cv : tk.Canvas, x0, y0, r, **options):
     "draw a regular hexagone on the canva cv"
     "with left vertex a coordinates x0, y0"
-    x1, y1 = x0 + r*cos(pi/3), y0 + r*sin(pi/3)
-    x2, y2 = x1 + r, y1
-    x3, y3 = x2 + r*cos(pi/3), y0
-    x4, y4 = x2, y0 - r*sin(pi/3)
-    x5, y5 = x1, y4
-
-    id = cv.create_polygon(x0, y0,
-                      x1, y1,
-                      x2, y2, 
-                      x3, y3, 
-                      x4, y4, 
-                      x5, y5,
-                      **options)
+    place_reg_poly(cv, 6, x0, y0, r, **options)
     return id
 
 def place_triangle(cv : tk.Canvas, x0, y0, r, **options):
