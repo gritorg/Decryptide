@@ -10,11 +10,11 @@ Biome = {
     4 : "FORET"
 }
 
-BiomeColor = {0 : "blue",
-              1 : "yellow",
-              2 : "purple",
-              3 : "grey",
-              4 : "green"}
+BiomeColor = {0 : "#20518a",
+              1 : "#fca903",
+              2 : "#65208a",
+              3 : "#7c7c7d",
+              4 : "#1c591d"}
 
 BIOMES = [0]*6
 BIOMES[0] = array([[0,0,0,0,4,4],
