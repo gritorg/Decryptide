@@ -38,29 +38,30 @@ def place_octogone(cv : tk.Canvas, x0, y0, r, **options):
 
 class CryptideBoardCanvas(tk.Canvas):
     def __init__(self, master, biome_grid = None, animal_grid = None):
-        super().__init__(master, width=1000, height=800)
+        super().__init__(master, width=800, height=800, bg="white")
         if biome_grid is not None and animal_grid is not None:
              self.biome_grid = biome_grid
              self.animal_grid = animal_grid
-             self.place_hex_net(self, 40, self.biome_grid, self.animal_grid)
+             self.place_hex_net(self, self.biome_grid, self.animal_grid)
 
-        place_triangle(self, 100, 700, 20, fill="green")
-        place_octogone(self, 300, 700, 20, fill="green")
 
-    def place_hex_net(self, r, biome_grid, animal_grid, **options):
+    def place_hex_net(self, biome_grid, animal_grid, **options):
         """ne marche que pour des largeur paire"""
+        r=40
         self.delete("all")
         assert biome_grid.shape == animal_grid.shape
         self.hex_id_table = [[]]*len(biome_grid)
         for i in range(len(biome_grid)):
-            x = 100
+            x = 70
             y = 100 + i*2*r*sin(pi/3)
             yp = y + r*sin(pi/3)
             for j in range(len(biome_grid[0])//2):
-                hex_id = place_hexa(self, x, y, r, fill=BiomeColor[biome_grid[i, 2*j]], outline=AnimalsColor[animal_grid[i, 2*j]], width=10, **options)
+                hex_id = place_hexa(self, x, y, r, fill=BiomeColor[biome_grid[i, 2*j]], outline="black", width=1,  **options)
+                place_hexa(self, x, y, 35, fill='', outline=AnimalsColor[animal_grid[i, 2*j]], width=3, activefill="white", **options)
                 self.hex_id_table[i].append(hex_id)
                 xp = x + r*(1+cos(pi/3))
-                hex_id = place_hexa(self, xp, yp, r, fill=BiomeColor[biome_grid[i, 2*j+1]], outline=AnimalsColor[animal_grid[i, 2*j+1]], width=10, **options)
+                hex_id = place_hexa(self, xp, yp, r, fill=BiomeColor[biome_grid[i, 2*j+1]], outline="black", width=1, activefill="white", **options)
+                place_hexa(self, xp, yp, 35, fill='', outline=AnimalsColor[animal_grid[i, 2*j+1]], width=3, activefill="white", **options)
                 self.hex_id_table[i].append(hex_id)
                 x += 2*r*(1 + cos(pi/3))
 
@@ -83,7 +84,7 @@ class SetupInterface(tk.Tk):
         
         self.board = Board(numbers)
 
-        self.cv.place_hex_net(40, self.board.biome_grid, self.board.animal_grid)
+        self.cv.place_hex_net(self.board.biome_grid, self.board.animal_grid)
 
     def place_structure(self):
         pass
