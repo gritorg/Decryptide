@@ -10,16 +10,16 @@ Biome = {
     4 : "FORET"
 }
 
-BiomeColor = {0 : "#20518a",
+BiomeColor = {0 : "#3354cc",
               1 : "#fca903",
               2 : "#65208a",
               3 : "#7c7c7d",
               4 : "#1c591d"}
 
-Structurelist = [(3, "green"),
+StructureList = [(3, "green"),
                  (8, "green"),
-                 (3, "blue"),
-                 (8, "blue"),
+                 (3, "#0226a8"),
+                 (8, "#0226a8"),
                  (3, "white"), 
                  (8, "white")]
 

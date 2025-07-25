@@ -3,15 +3,15 @@ import tkinter as tk
 import numpy as np
 from math import cos, sin, pi, exp
 from cmath import exp
-from utils import BIOMES, Biome, BiomeColor, AnimalsColor
+from utils import BIOMES, Biome, BiomeColor, AnimalsColor, StructureList
 from game import Board
 
-def place_reg_poly(cv, n, x0, y0, r, **options):
+def place_reg_poly(cv, n, x0, y0, r, phi=0,**options):
     """place a regular polygon centered on x0, y0"""
 
     l=[]
     for k in range(n):
-        affix = x0 + y0*1j + r*exp((2*k/n)*pi*1j)
+        affix = x0 + y0*1j + r*exp(((2*k/n)*pi+phi)*1j)
         x, y = float(affix.real), float(affix.imag)
         l.append((x, y))
 
@@ -22,17 +22,17 @@ def place_reg_poly(cv, n, x0, y0, r, **options):
 def place_hexa(cv : tk.Canvas, x0, y0, r, **options):
     "draw a regular hexagone on the canva cv"
     "with left vertex a coordinates x0, y0"
-    place_reg_poly(cv, 6, x0, y0, r, **options)
+    id = place_reg_poly(cv, 6, x0, y0, r, **options)
     return id
 
 def place_triangle(cv : tk.Canvas, x0, y0, r, **options):
     "draw an equilateral triangle with left vertex at coordinate x0, y0"
-    id = place_reg_poly(cv, 3, x0, y0, r, **options)
+    id = place_reg_poly(cv, 3, x0, y0, r, phi=pi/6, **options)
     return id 
     
 def place_octogone(cv : tk.Canvas, x0, y0, r, **options):
     "draw a reglar octogone of radius r centered on x0, y0"
-    id = place_reg_poly(cv, 8, x0, y0, r, **options)
+    id = place_reg_poly(cv, 8, x0, y0, r, phi=pi/8, **options)
     return id 
 
 
@@ -50,8 +50,9 @@ class CryptideBoardCanvas(tk.Canvas):
         r=40
         self.delete("all")
         assert biome_grid.shape == animal_grid.shape
-        self.hex_id_table = [[]]*len(biome_grid)
+        self.hex_id_table = []
         for i in range(len(biome_grid)):
+            self.hex_id_table.append([])
             x = 70
             y = 100 + i*2*r*sin(pi/3)
             yp = y + r*sin(pi/3)
@@ -70,12 +71,22 @@ class SetupInterface(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Mise en place du plateau")
-        self.entree = tk.Entry(self)
+
+        self.top_frame = tk.Frame(self)
+        
+        self.board_choice_frame = tk.Frame(self.top_frame)
+        self.entree = tk.Entry(self.board_choice_frame)
+        self.bouton = tk.Button(self.board_choice_frame, text="valider", command=self.validate)
+
+        self.structure_cv = tk.Canvas(self.top_frame, width=100, height=100, bg = "white")
+
         self.cv = CryptideBoardCanvas(self)
-        self.bouton = tk.Button(self, text="valider", command=self.validate)
 
         self.entree.pack()
         self.bouton.pack()
+        self.board_choice_frame.pack(side="left", expand=True)
+        self.structure_cv.pack(side="left", expand=True)
+        self.top_frame.pack()
         self.cv.pack()
 
     def validate(self):
@@ -85,9 +96,20 @@ class SetupInterface(tk.Tk):
         self.board = Board(numbers)
 
         self.cv.place_hex_net(self.board.biome_grid, self.board.animal_grid)
+        self.place_structure(2, self.cv.hex_id_table[3][1])
+        self.place_structure(3, self.cv.hex_id_table[5][5])
 
-    def place_structure(self):
-        pass
+    def place_structure(self, struct_id, hex_id):
+
+        l = self.cv.coords(hex_id)
+        x, y = l[0]-40, l[1]
+        color = StructureList[struct_id][1]
+        if StructureList[struct_id][0] == 3:
+            place_triangle(self.cv, x, y, 25, fill=color)
+        elif StructureList[struct_id][0] == 8:
+            place_octogone(self.cv, x, y, 25, fill=color)
+        else:
+            raise ValueError("les structures ne peuvent être que des cabanes ou des pierres")
      
         
 class GameInterface(tk.Tk):
