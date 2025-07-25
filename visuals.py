@@ -35,6 +35,17 @@ def place_octogone(cv : tk.Canvas, x0, y0, r, **options):
     id = place_reg_poly(cv, 8, x0, y0, r, phi=pi/8, **options)
     return id 
 
+def draw_structure(cv, struct_id, x, y, r, **options):
+
+    color = StructureList[struct_id][1]
+    if StructureList[struct_id][0] == 3:
+        id = place_triangle(cv, x, y, r, fill=color, **options)
+    elif StructureList[struct_id][0] == 8:
+        id = place_octogone(cv, x, y, r, fill=color, **options)
+    else:
+        raise ValueError("les structures ne peuvent être que des cabanes ou des pierres")
+    return id
+
 
 class CryptideBoardCanvas(tk.Canvas):
     def __init__(self, master, biome_grid = None, animal_grid = None):
@@ -66,6 +77,23 @@ class CryptideBoardCanvas(tk.Canvas):
                 self.hex_id_table[i].append(hex_id)
                 x += 2*r*(1 + cos(pi/3))
 
+class SelectionCanvas(tk.Canvas):
+
+    def __init__(self, master):
+        super().__init__(master, width = 600, height=100, bg="white")
+        self.selected_structure = None
+
+    def draw_choice(self):
+        for struct_id in range(6):
+            id = draw_structure(self, struct_id, 50+100*struct_id, 50, 30, outline="black", activefill="#888888")
+            self.tag_bind(id, "<Button-1>", lambda e, i=id : self.struct_on_click(i))
+    
+    def struct_on_click(self, id):
+        if self.selected_structure is not None:
+            self.itemconfig(self.selected_structure, outline="black", width=1)
+        self.selected_structure = id
+        self.itemconfig(id, outline="red", width=3)
+
 class SetupInterface(tk.Tk):
 
     def __init__(self):
@@ -76,9 +104,9 @@ class SetupInterface(tk.Tk):
         
         self.board_choice_frame = tk.Frame(self.top_frame)
         self.entree = tk.Entry(self.board_choice_frame)
-        self.bouton = tk.Button(self.board_choice_frame, text="valider", command=self.validate)
+        self.bouton = tk.Button(self.board_choice_frame, text="Valider", command=self.validate)
 
-        self.structure_cv = tk.Canvas(self.top_frame, width=100, height=100, bg = "white")
+        self.structure_cv = SelectionCanvas(self.top_frame)
 
         self.cv = CryptideBoardCanvas(self)
 
@@ -96,20 +124,15 @@ class SetupInterface(tk.Tk):
         self.board = Board(numbers)
 
         self.cv.place_hex_net(self.board.biome_grid, self.board.animal_grid)
-        self.place_structure(2, self.cv.hex_id_table[3][1])
-        self.place_structure(3, self.cv.hex_id_table[5][5])
+        self.structure_placement_routine()
 
-    def place_structure(self, struct_id, hex_id):
-
+    def structure_placement_routine(self):
+        self.structure_cv.draw_choice()
+        
+    def place_structure(self, struct_id, hex_id, **options):
         l = self.cv.coords(hex_id)
         x, y = l[0]-40, l[1]
-        color = StructureList[struct_id][1]
-        if StructureList[struct_id][0] == 3:
-            place_triangle(self.cv, x, y, 25, fill=color)
-        elif StructureList[struct_id][0] == 8:
-            place_octogone(self.cv, x, y, 25, fill=color)
-        else:
-            raise ValueError("les structures ne peuvent être que des cabanes ou des pierres")
+        draw_structure(self.cv, struct_id, x, y, 25, **options)
      
         
 class GameInterface(tk.Tk):
