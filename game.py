@@ -13,5 +13,11 @@ class Board:
 
         self.biome_grid = np.block(biome_list)
         self.animal_grid = np.block(animal_list)
+
+        self.structures= np.zeros((9, 12), dtype=int)
+
+
+    def add_structure(self, i, j, struct_id):
+        self.structures[i,j] = struct_id
     
         

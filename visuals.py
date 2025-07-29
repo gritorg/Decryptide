@@ -62,30 +62,42 @@ class CryptideBoardCanvas(tk.Canvas):
         self.delete("all")
         assert biome_grid.shape == animal_grid.shape
         self.hex_id_table = []
+        self.id_to_coord = {}
         for i in range(len(biome_grid)):
             self.hex_id_table.append([])
             x = 70
             y = 100 + i*2*r*sin(pi/3)
             yp = y + r*sin(pi/3)
             for j in range(len(biome_grid[0])//2):
-                hex_id = place_hexa(self, x, y, r, fill=BiomeColor[biome_grid[i, 2*j]], outline="black", width=1,  **options)
-                place_hexa(self, x, y, 35, fill='', outline=AnimalsColor[animal_grid[i, 2*j]], width=3, activefill="white", **options)
+                place_hexa(self, x, y, r, fill=BiomeColor[biome_grid[i, 2*j]], outline="black", width=1,  **options)
+                hex_id = place_hexa(self, x, y, 35, fill='', outline=AnimalsColor[animal_grid[i, 2*j]], width=3, activefill="white", **options)
                 self.hex_id_table[i].append(hex_id)
+                self.id_to_coord[hex_id] = (i, 2*j)
                 xp = x + r*(1+cos(pi/3))
-                hex_id = place_hexa(self, xp, yp, r, fill=BiomeColor[biome_grid[i, 2*j+1]], outline="black", width=1, activefill="white", **options)
-                place_hexa(self, xp, yp, 35, fill='', outline=AnimalsColor[animal_grid[i, 2*j+1]], width=3, activefill="white", **options)
+                place_hexa(self, xp, yp, r, fill=BiomeColor[biome_grid[i, 2*j+1]], outline="black", width=1, activefill="white", **options)
+                hex_id = place_hexa(self, xp, yp, 35, fill='', outline=AnimalsColor[animal_grid[i, 2*j+1]], width=3, activefill="white", **options)
                 self.hex_id_table[i].append(hex_id)
+                self.id_to_coord[hex_id] = (i, 2*j +1)
                 x += 2*r*(1 + cos(pi/3))
+
+    def set_click_function(self, func):
+        """func is a  function that takes the id as an argument"""
+        for i in range(9):
+            for j in range(12):
+                hex_id = self.hex_id_table[i][j]
+                self.tag_bind(hex_id, '<Button-1>', lambda e, i=hex_id : func(i))
 
 class SelectionCanvas(tk.Canvas):
 
     def __init__(self, master):
         super().__init__(master, width = 600, height=100, bg="white")
         self.selected_structure = None
+        self.id_table = {}
 
     def draw_choice(self):
         for struct_id in range(6):
             id = draw_structure(self, struct_id, 50+100*struct_id, 50, 30, outline="black", activefill="#888888")
+            self.id_table[id] = struct_id
             self.tag_bind(id, "<Button-1>", lambda e, i=id : self.struct_on_click(i))
     
     def struct_on_click(self, id):
@@ -93,6 +105,11 @@ class SelectionCanvas(tk.Canvas):
             self.itemconfig(self.selected_structure, outline="black", width=1)
         self.selected_structure = id
         self.itemconfig(id, outline="red", width=3)
+
+    @property
+    def chosen(self):
+        return self.id_table[self.selected_structure]
+
 
 class SetupInterface(tk.Tk):
 
@@ -105,6 +122,7 @@ class SetupInterface(tk.Tk):
         self.board_choice_frame = tk.Frame(self.top_frame)
         self.entree = tk.Entry(self.board_choice_frame)
         self.bouton = tk.Button(self.board_choice_frame, text="Valider", command=self.validate)
+        self.end_button = tk.Button(self.top_frame, text="Done", command=self.action)
 
         self.structure_cv = SelectionCanvas(self.top_frame)
 
@@ -114,6 +132,7 @@ class SetupInterface(tk.Tk):
         self.bouton.pack()
         self.board_choice_frame.pack(side="left", expand=True)
         self.structure_cv.pack(side="left", expand=True)
+        self.end_button.pack(side="left")
         self.top_frame.pack()
         self.cv.pack()
 
@@ -124,15 +143,29 @@ class SetupInterface(tk.Tk):
         self.board = Board(numbers)
 
         self.cv.place_hex_net(self.board.biome_grid, self.board.animal_grid)
+        print(len(self.cv.hex_id_table))
+        print(len(self.cv.hex_id_table[0]))
         self.structure_placement_routine()
 
     def structure_placement_routine(self):
+
         self.structure_cv.draw_choice()
-        
+
+        def click_func(id):
+            self.place_structure(self.structure_cv.chosen, id)
+            i,j = self.cv.id_to_coord[id]
+            self.board.add_structure(i,j,self.structure_cv.chosen)
+
+        self.cv.set_click_function(click_func)
+
     def place_structure(self, struct_id, hex_id, **options):
+        """structure_id is the index of the structure in StructureList"""
         l = self.cv.coords(hex_id)
-        x, y = l[0]-40, l[1]
+        x, y = l[0]-35, l[1]
         draw_structure(self.cv, struct_id, x, y, 25, **options)
+
+    def action(self):
+        print(self.board.structures)
      
         
 class GameInterface(tk.Tk):
