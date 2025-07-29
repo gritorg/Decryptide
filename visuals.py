@@ -122,7 +122,7 @@ class SetupInterface(tk.Tk):
         self.board_choice_frame = tk.Frame(self.top_frame)
         self.entree = tk.Entry(self.board_choice_frame)
         self.bouton = tk.Button(self.board_choice_frame, text="Valider", command=self.validate)
-        self.end_button = tk.Button(self.top_frame, text="Done", command=self.action)
+        self.end_button = tk.Button(self.top_frame, text="Done", command=self.quit)
 
         self.structure_cv = SelectionCanvas(self.top_frame)
 
@@ -143,8 +143,6 @@ class SetupInterface(tk.Tk):
         self.board = Board(numbers)
 
         self.cv.place_hex_net(self.board.biome_grid, self.board.animal_grid)
-        print(len(self.cv.hex_id_table))
-        print(len(self.cv.hex_id_table[0]))
         self.structure_placement_routine()
 
     def structure_placement_routine(self):
@@ -164,8 +162,9 @@ class SetupInterface(tk.Tk):
         x, y = l[0]-35, l[1]
         draw_structure(self.cv, struct_id, x, y, 25, **options)
 
-    def action(self):
-        print(self.board.structures)
+    def mainloop(self, n = 0):
+        super().mainloop(n)
+        return self.board
      
         
 class GameInterface(tk.Tk):

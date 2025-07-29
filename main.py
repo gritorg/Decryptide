@@ -5,4 +5,5 @@ from visuals import SetupInterface
 from utils import BIOMES, ANIMALS
 
 fenetre = SetupInterface()
-fenetre.mainloop()
+board = fenetre.mainloop()
+print(board.structures)
