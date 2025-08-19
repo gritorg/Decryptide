@@ -74,7 +74,7 @@ class CryptideBoardCanvas(tk.Canvas):
                 self.hex_id_table[i].append(hex_id)
                 self.id_to_coord[hex_id] = (i, 2*j)
                 xp = x + r*(1+cos(pi/3))
-                place_hexa(self, xp, yp, r, fill=BiomeColor[biome_grid[i, 2*j+1]], outline="black", width=1, activefill="white", **options)
+                place_hexa(self, xp, yp, r, fill=BiomeColor[biome_grid[i, 2*j+1]], outline="black", width=1, **options)
                 hex_id = place_hexa(self, xp, yp, 35, fill='', outline=AnimalsColor[animal_grid[i, 2*j+1]], width=3, activefill="white", **options)
                 self.hex_id_table[i].append(hex_id)
                 self.id_to_coord[hex_id] = (i, 2*j +1)

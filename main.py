@@ -6,4 +6,4 @@ from utils import BIOMES, ANIMALS
 
 fenetre = SetupInterface()
 board = fenetre.mainloop()
-print(board.structures)
+print(board.structures) 
