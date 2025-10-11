@@ -16,8 +16,11 @@ class Board:
 
         self.structures= np.zeros((9, 12), dtype=int)
 
+        
+
 
     def add_structure(self, i, j, struct_id):
         self.structures[i,j] = struct_id + 1
+
     
         

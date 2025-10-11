@@ -16,12 +16,15 @@ BiomeColor = {0 : "#3354cc",
               3 : "#7c7c7d",
               4 : "#1c591d"}
 
-StructureList = [(3, "green"),
+StructureList = [None,
+                 (3, "green"),
                  (8, "green"),
                  (3, "#0226a8"),
                  (8, "#0226a8"),
                  (3, "white"), 
-                 (8, "white")]
+                 (8, "white"), 
+                 (3, "black"), 
+                 (8, "black")]
 
 BIOMES = [0]*6
 BIOMES[0] = array([[0,0,0,0,4,4],
