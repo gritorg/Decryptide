@@ -121,8 +121,11 @@ class SelectionCanvas(tk.Canvas):
     def struct_on_click(self, id):
         if self.selected_structure is not None:
             self.itemconfig(self.selected_structure, outline="black", width=1)
-        self.selected_structure = id
-        self.itemconfig(id, outline="red", width=3)
+        if self.selected_structure == id:
+            self.selected_structure = None
+        else:
+            self.selected_structure = id
+            self.itemconfig(id, outline="red", width=3)
 
     @property
     def chosen(self):
@@ -164,17 +167,14 @@ class SetupInterface(tk.Tk):
         self.structure_placement_routine()
 
     def structure_placement_routine(self):
-
         self.structure_cv.draw_choice()
 
         def click_func(id):
-            if self.structure_cv.chosen == 0:
-                return None
-            else:
-                self.cv.erase_structure(id)
+            self.cv.erase_structure(id)
+            i,j = self.cv.id_to_coord[id]
+            self.board.add_structure(i,j,self.structure_cv.chosen)
+            if self.structure_cv.chosen is not None:
                 self.cv.place_structure(self.structure_cv.chosen, id)
-                i,j = self.cv.id_to_coord[id]
-                self.board.add_structure(i,j,self.structure_cv.chosen)
 
         self.cv.set_click_function(click_func)
 
