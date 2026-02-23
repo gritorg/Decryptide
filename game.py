@@ -18,4 +18,4 @@ class Board:
 
 
     def add_structure(self, i, j, struct_id):
-        self.structures[i,j] = struct_id    
+        self.structures[i,j] = struct_id

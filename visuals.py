@@ -53,35 +53,40 @@ def draw_structure(cv, struct_id, x, y, r, **options):
 
 
 class CryptideBoardCanvas(tk.Canvas):
-    def __init__(self, master, biome_grid = None, animal_grid = None):
+    def __init__(self, master, board:Board, **options):
         super().__init__(master, width=800, height=800, bg="white")
-        if biome_grid is not None and animal_grid is not None:
-            self.biome_grid = biome_grid
-            self.animal_grid = animal_grid
-            self.place_hex_net(self, self.biome_grid, self.animal_grid)
+        self.board = board
         self.struct_dict = {}
+        self.place_hex_net(**options)
+
+    @property
+    def biome_grid(self):
+        return self.board.biome_grid
+    
+    @property
+    def animal_grid(self):
+        return self.board.animal_grid
 
 
-    def place_hex_net(self, biome_grid, animal_grid, **options):
+    def place_hex_net(self, **options):
         """ne marche que pour des largeur paire"""
         r=40
         self.delete("all")
-        assert biome_grid.shape == animal_grid.shape
         self.hex_id_table = []
         self.id_to_coord = {}
-        for i in range(len(biome_grid)):
+        for i in range(len(self.biome_grid)):
             self.hex_id_table.append([])
             x = 70
             y = 100 + i*2*r*sin(pi/3)
             yp = y + r*sin(pi/3)
-            for j in range(len(biome_grid[0])//2):
-                place_hexa(self, x, y, r, fill=BiomeColor[biome_grid[i, 2*j]], outline="black", width=1,  **options)
-                hex_id = place_hexa(self, x, y, 35, fill='', outline=AnimalsColor[animal_grid[i, 2*j]], width=3, activefill="white", **options)
+            for j in range(len(self.biome_grid[0])//2):
+                place_hexa(self, x, y, r, fill=BiomeColor[self.biome_grid[i, 2*j]], outline="black", width=1,  **options)
+                hex_id = place_hexa(self, x, y, 35, fill='', outline=AnimalsColor[self.animal_grid[i, 2*j]], width=3, activefill="white", **options)
                 self.hex_id_table[i].append(hex_id)
                 self.id_to_coord[hex_id] = (i, 2*j) 
                 xp = x + r*(1+cos(pi/3))
-                place_hexa(self, xp, yp, r, fill=BiomeColor[biome_grid[i, 2*j+1]], outline="black", width=1, **options)
-                hex_id = place_hexa(self, xp, yp, 35, fill='', outline=AnimalsColor[animal_grid[i, 2*j+1]], width=3, activefill="white", **options)
+                place_hexa(self, xp, yp, r, fill=BiomeColor[self.biome_grid[i, 2*j+1]], outline="black", width=1, **options)
+                hex_id = place_hexa(self, xp, yp, 35, fill='', outline=AnimalsColor[self.animal_grid[i, 2*j+1]], width=3, activefill="white", **options)
                 self.hex_id_table[i].append(hex_id)
                 self.id_to_coord[hex_id] = (i, 2*j +1)
                 x += 2*r*(1 + cos(pi/3))
@@ -93,10 +98,16 @@ class CryptideBoardCanvas(tk.Canvas):
         id = draw_structure(self, struct_id, x, y, 25, **options)
         self.struct_dict[hex_id] = id
 
+        i,j = self.id_to_coord[hex_id]
+        self.board.add_structure(i, j, struct_id )
+
     def erase_structure(self, hex_id):
         if hex_id in self.struct_dict.keys():
             self.delete(self.struct_dict[hex_id])
             del self.struct_dict[hex_id]
+
+            i, j = self.id_to_coord[hex_id]
+            self.board.structures[i,j] = 0
 
     def set_click_function(self, func):
         """func is a  function that takes the id as an argument"""
@@ -105,12 +116,18 @@ class CryptideBoardCanvas(tk.Canvas):
                 hex_id = self.hex_id_table[i][j]
                 self.tag_bind(hex_id, '<Button-1>', lambda e, i=hex_id : func(i))
 
+    @classmethod
+    def from_numbers(cls, master, number_list):
+        board = Board(number_list)
+        return cls(master, board)
+
 class SelectionCanvas(tk.Canvas):
 
     def __init__(self, master):
         super().__init__(master, width = 600, height=100, bg="white")
         self.selected_structure = None
         self.id_table = {None: 0}
+        self.draw_choice()
 
     def draw_choice(self):
         for struct_id in range(1,7):
@@ -134,53 +151,35 @@ class SelectionCanvas(tk.Canvas):
 
 class SetupInterface(tk.Tk):
 
-    def __init__(self):
+    def __init__(self, number_list):
         super().__init__()
         self.title("Mise en place du plateau")
 
         self.top_frame = tk.Frame(self)
-        
-        self.board_choice_frame = tk.Frame(self.top_frame)
-        self.entree = tk.Entry(self.board_choice_frame)
-        self.bouton = tk.Button(self.board_choice_frame, text="Valider", command=self.validate)
         self.end_button = tk.Button(self.top_frame, text="Done", command=self.quit)
-
         self.structure_cv = SelectionCanvas(self.top_frame)
 
-        self.cv = CryptideBoardCanvas(self)
+        self.cv = CryptideBoardCanvas.from_numbers(self, number_list)
 
-        self.entree.pack()
-        self.bouton.pack()
-        self.board_choice_frame.pack(side="left", expand=True)
         self.structure_cv.pack(side="left", expand=True)
         self.end_button.pack(side="left")
         self.top_frame.pack()
         self.cv.pack()
-
-    def validate(self):
-        numbers = list(map(int,list(self.entree.get())))
-        assert len(numbers) == 6
         
-        self.board = Board(numbers)
-
-        self.cv.place_hex_net(self.board.biome_grid, self.board.animal_grid)
         self.structure_placement_routine()
 
     def structure_placement_routine(self):
-        self.structure_cv.draw_choice()
 
-        def click_func(id):
-            self.cv.erase_structure(id)
-            i,j = self.cv.id_to_coord[id]
-            self.board.add_structure(i,j,self.structure_cv.chosen)
+        def click_func(hex_id):
+            self.cv.erase_structure(hex_id)
             if self.structure_cv.chosen is not None:
-                self.cv.place_structure(self.structure_cv.chosen, id)
+                self.cv.place_structure(self.structure_cv.chosen, hex_id) 
 
         self.cv.set_click_function(click_func)
 
     def mainloop(self, n = 0):
         super().mainloop(n)
-        return self.board
+        return self.cv.board
      
         
 class GameInterface(tk.Tk):
